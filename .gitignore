@@ -1,6 +1,8 @@
 # Miscellaneous
 env/
+Checkpoints/
 dataset/
+trained/
 .DS_Store
 .env
 .idea
