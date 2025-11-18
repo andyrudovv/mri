@@ -11,47 +11,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MRIs'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Row(
-            children: [
-              const SideBar(),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      appBar: null,
+      body: Row(
+        children: [
+          const SideBar(),
+
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                /// MRI Viewer with REAL height + width constraints
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: 500,
-                        maxHeight: 500,
-                        minWidth: 200,
-                        minHeight: 200,
-                      ),
-                      child: AspectRatio(
-                        aspectRatio: 1.0,
-                        child: MRIViewer(
-                          
-                        ),
+                    MRIViewer(),
+                  ],
+                ),
+                
+                /// MRI Summary panel
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        
+                        onPressed: () {}, 
+                        child: Text("Get Analysis")
                       ),
                     ),
-                    MRIsummary()
-                  ]
+                    const MRIsummary(),
+                  ],
                 ),
-              ),
-            ],
-          );
-        },
-      )
-      
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

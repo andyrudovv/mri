@@ -4,10 +4,9 @@ numpy
 pillow
 matplotlib
 scikit-learn
-tensorflow-addons
 h5py
 
 
 # backend
-fastapi
+fastapi[standard]
 uvicorn
