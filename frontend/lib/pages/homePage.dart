@@ -3,6 +3,10 @@ import 'package:frontend/components/MRIViewer.dart';
 import 'package:frontend/components/MRIsummary.dart';
 import 'package:frontend/components/SideBar.dart';
 
+import 'package:dio/dio.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -11,6 +15,70 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Dio dio = Dio();
+  File? selectedImage;
+  String predictionResult = "No analysis yet";
+
+  /// ---------------------------
+  /// Upload & Predict MRI
+  /// ---------------------------
+  Future<String> predictMRI(File imageFile) async {
+    final String url = "http://127.0.0.1:8000/predict";
+    // For emulator: 10.0.2.2, For real phone: your PC IP 192.168.x.x
+
+    String fileName = imageFile.path.split('/').last;
+
+    FormData formData = FormData.fromMap({
+      "file": await MultipartFile.fromFile(
+        imageFile.path,
+        filename: fileName,
+      )
+    });
+
+    try {
+      final response = await dio.post(url, data: formData);
+
+      final disg = response.data["prediction"]["predicted_class"].toString();
+      final probs = response.data["prediction"]["probabilities"].toString();
+
+      return "$disg $probs";
+    } catch (e) {
+      print("Prediction error: $e");
+      return "error";
+    }
+  }
+
+  /// Select MRI image
+  Future pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) return;
+
+    setState(() {
+      selectedImage = File(image.path);
+    });
+  }
+
+  /// Run prediction
+  Future runAnalysis() async {
+    if (selectedImage == null) {
+      setState(() {
+        predictionResult = "Please select an MRI image first.";
+      });
+      return;
+    }
+
+    String result = await predictMRI(selectedImage!);
+
+    setState(() {
+      predictionResult = result;
+    });
+  }
+
+  /// ---------------------------
+  /// UI
+  /// ---------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,27 +91,30 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                /// MRI Viewer with REAL height + width constraints
+                /// MRI Viewer
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    MRIViewer(),
+                    MRIViewer(imageFile: selectedImage),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: pickImage,
+                      child: const Text("Select MRI Image"),
+                    ),
                   ],
                 ),
-                
+
                 /// MRI Summary panel
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        
-                        onPressed: () {}, 
-                        child: Text("Get Analysis")
-                      ),
+                    ElevatedButton(
+                      onPressed: runAnalysis,
+                      child: const Text("Get Analysis"),
                     ),
-                    const MRIsummary(),
+                    const SizedBox(height: 20),
+
+                    MRIsummary(result: predictionResult),
                   ],
                 ),
               ],
