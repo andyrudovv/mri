@@ -14,8 +14,6 @@ predict_model = load_model("ai/trained/MRI_ENSEMBLED.keras")
 diagnoses = ['glioma', 'meningioma', 'notumor', 'pituitary']
 
 
-import numpy as np
-
 def make_prediction(path_to_img: str) -> dict:
     # Load and preprocess image
     img_to_predict = image.load_img(path_to_img, target_size=(256, 256))
@@ -59,6 +57,14 @@ async def predict_image(file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
+
+            # convert to jpg if necessary
+            # if file.content_type != "image/jpeg":
+            #     from PIL import Image
+            #     img = Image.open(tmp_path)
+            #     jpg_path = tmp_path.rsplit('.', 1)[0] + ".jpg"
+            #     img.convert("RGB").save(jpg_path, "JPEG")
+            #     tmp_path = jpg_path
     finally:
         file.file.close()
 

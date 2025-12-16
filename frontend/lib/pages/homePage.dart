@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/components/AddPatientDialog.dart';
 import 'package:frontend/components/MRIViewer.dart';
 import 'package:frontend/components/MRIsummary.dart';
 import 'package:frontend/components/SideBar.dart';
@@ -19,12 +20,17 @@ class _HomePageState extends State<HomePage> {
   File? selectedImage;
   String predictionResult = "No analysis yet";
 
-  /// ---------------------------
+  /// Show Add Patient Dialog
+  void _showAddPatientDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Addpatientdialog(),
+    );
+  }
+
   /// Upload & Predict MRI
-  /// ---------------------------
   Future<String> predictMRI(File imageFile) async {
     final String url = "http://127.0.0.1:8000/predict";
-    // For emulator: 10.0.2.2, For real phone: your PC IP 192.168.x.x
 
     String fileName = imageFile.path.split('/').last;
 
@@ -85,36 +91,68 @@ class _HomePageState extends State<HomePage> {
       appBar: null,
       body: Row(
         children: [
-          const SideBar(),
+          SideBar(addPatiantFunc: _showAddPatientDialog),
 
           Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            child: Column(
               children: [
-                /// MRI Viewer
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MRIViewer(imageFile: selectedImage),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: pickImage,
-                      child: const Text("Select MRI Image"),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: const [
+                          CircleAvatar(
+                            backgroundColor: Colors.greenAccent,
+                            radius: 15,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            "Name",
+                          ),
+                        ],
+                      ),
+                      
+                    ],
+                  ),
                 ),
 
-                /// MRI Summary panel
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ElevatedButton(
-                      onPressed: runAnalysis,
-                      child: const Text("Get Analysis"),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        /// MRI Viewer
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            MRIViewer(imageFile: selectedImage),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: pickImage,
+                              child: const Text("Select MRI Image"),
+                            ),
+                          ],
+                        ),
+                        /// MRI Summary panel
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: runAnalysis,
+                              child: const Text("Get Analysis"),
+                            ),
+                            const SizedBox(height: 20),
+                    
+                            MRIsummary(result: predictionResult),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-
-                    MRIsummary(result: predictionResult),
                   ],
                 ),
               ],

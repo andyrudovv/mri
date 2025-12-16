@@ -1,5 +1,4 @@
 from tensorflow.keras.layers import RandomRotation, RandomZoom, RandomContrast
-from tensorflow.keras.layers import Input
 
 def augment_input(input_layer):
     x = RandomRotation((-0.2, 0.2))(input_layer)

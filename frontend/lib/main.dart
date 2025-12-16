@@ -4,8 +4,6 @@ import 'package:frontend/pages/authPage.dart';
 import 'package:frontend/pages/homePage.dart';
 
 void main() {
-  // Use path URL strategy on web to avoid hash (#) in URLs.
-  // This makes routes look like `/home` instead of `#/home`.
   setPathUrlStrategy();
   runApp(const MyApp());
 }
@@ -17,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'MRI analisys',
       debugShowCheckedModeBanner: false,
 
       initialRoute: '/',

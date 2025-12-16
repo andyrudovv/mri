@@ -1,40 +1,21 @@
 import 'package:flutter/material.dart';
 
 class SideBar extends StatefulWidget {
-  const SideBar({super.key});
+  const SideBar({super.key, required this.addPatiantFunc});
+
+  final void Function(BuildContext context) addPatiantFunc;
 
   @override
   State<SideBar> createState() => _SideBarState();
 }
 
 class _SideBarState extends State<SideBar> {
-  // Use const for variables that don't change
-  static const double sidebarWidth = 300; 
+  static const double sidebarWidth = 300;
+
   final List<String> chats = const [
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
+    'Alice', 'Bob', 'Charlie', 'David', 'Eve',
+    'Mark', 'Julia', 'Sasha', 'Tom', 'Leo',
+    'Alex', 'Sara', 'John', 'Nina', 'Max'
   ];
 
   @override
@@ -52,43 +33,32 @@ class _SideBarState extends State<SideBar> {
       ),
       child: Column(
         children: [
-          // 1. Top Bar (User Profile & New Chat Button)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // User Profile Section
                 Row(
-                  mainAxisSize: MainAxisSize.min, // Prevents layout overflow
-                  children: <Widget>[
-                    const CircleAvatar(
+                  children: const [
+                    CircleAvatar(
                       backgroundColor: Colors.blueGrey,
                       radius: 15,
                     ),
-                    const SizedBox(width: 8), // Spacing
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       "My Name",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
 
-                // Circular New Chat Button
                 ElevatedButton(
                   onPressed: () {
-                    // TODO: Implement new chat functionality
+                    widget.addPatiantFunc(context);
                   },
                   style: ButtonStyle(
-                    // Set the shape to CircleBorder
-                    shape: WidgetStateProperty.all<OutlinedBorder>(
-                      const CircleBorder(),
-                    ),
-                    // Set padding to control the size of the circle
-                    padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
-                      const EdgeInsets.all(12),
-                    ),
-                    // Optional: Remove shadow
+                    shape: WidgetStateProperty.all(const CircleBorder()),
+                    padding: WidgetStateProperty.all(const EdgeInsets.all(12)),
                     elevation: WidgetStateProperty.all(0),
                   ),
                   child: const Icon(Icons.add, size: 20),
@@ -96,12 +66,10 @@ class _SideBarState extends State<SideBar> {
               ],
             ),
           ),
-          
-          // Separator line
+
           Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
 
-          // 2. Chat List (Takes up ALL remaining vertical height)
-          Expanded( // FIX: Gives the ListView constrained height
+          Expanded(
             child: ListView.builder(
               itemCount: chats.length,
               itemBuilder: (context, index) {
@@ -121,9 +89,7 @@ class _SideBarState extends State<SideBar> {
                       ),
                       title: Text(chats[index]),
                       subtitle: const Text('Diagnose'),
-                      onTap: () {
-                        // TODO: handle chat selection
-                      },
+                      onTap: () {},
                     ),
                   ),
                 );
