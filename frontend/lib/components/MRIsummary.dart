@@ -9,8 +9,12 @@ class MRIsummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 500,
-      height: 600,
+      constraints: const BoxConstraints(
+        maxWidth: 500,
+        maxHeight: 600,
+        minWidth: 300,
+        minHeight: 200,
+      ),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: Colors.grey.shade300,

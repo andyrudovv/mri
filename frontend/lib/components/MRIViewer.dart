@@ -9,8 +9,12 @@ class MRIViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 500,
-      height: 500,
+      constraints: const BoxConstraints(
+        maxWidth: 500,
+        maxHeight: 500,
+        minWidth: 300,
+        minHeight: 300,
+      ),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(10),
