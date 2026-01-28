@@ -1,4 +1,4 @@
-# ai
+# AI
 tensorflow
 numpy
 pillow
@@ -6,7 +6,13 @@ matplotlib
 scikit-learn
 h5py
 
-
-# backend
+# Backend & Framework
 fastapi[standard]
 uvicorn
+sqlalchemy>=2.0
+psycopg2-binary
+pydantic[email]
+python-jose[cryptography]
+passlib[argon2]
+python-multipart
+python-dotenv

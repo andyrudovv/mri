@@ -1,11 +1,38 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import tempfile
 import shutil
+import os
+from database import engine, Base
+from routes.auth import router as auth_router
+from routes.patients import router as patients_router
+from routes.analysis import router as analysis_router
 
-app = FastAPI()
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="MRI Analysis API",
+    description="API for MRI analysis with doctor and patient management",
+    version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth_router)
+app.include_router(patients_router)
+app.include_router(analysis_router)
 
 # Load model once at startup
 predict_model = load_model("ai/trained/MRI_ENSEMBLED.keras")
@@ -45,6 +72,11 @@ def make_prediction(path_to_img: str) -> dict:
     }
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
 
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
@@ -75,3 +107,4 @@ async def predict_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "prediction": result
     }
+
