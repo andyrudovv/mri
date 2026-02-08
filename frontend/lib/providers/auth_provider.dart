@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/models/doctor.dart';
 import 'package:frontend/models/patient.dart';
@@ -11,6 +13,12 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isLoggedIn = false;
+
+  Patient? _selectedPatient;
+  Patient? get selectedPatient => _selectedPatient;
+
+  File? _selectedImage;
+  File? get selectedImage => _selectedImage;
 
   // Getters
   Doctor? get currentDoctor => _currentDoctor;
@@ -235,6 +243,16 @@ class AuthProvider extends ChangeNotifier {
   /// Clear error message
   void clearError() {
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  void selectPatient(Patient patient) {
+    _selectedPatient = patient;
+    notifyListeners();
+  }
+
+  void setSelectedImage(File? image) {
+    _selectedImage = image;
     notifyListeners();
   }
 }

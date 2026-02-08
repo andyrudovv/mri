@@ -165,6 +165,7 @@ class _PatientCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTap: () {
+          Provider.of<AuthProvider>(context, listen: false).selectPatient(patient);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Selected: ${patient.name}')),
           );

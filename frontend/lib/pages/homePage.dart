@@ -148,6 +148,7 @@ class _HomePageState extends State<HomePage> {
         appBar: null,
         body: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
+            final selectedPatient = authProvider.selectedPatient;
             return Row(
               children: [
                 SideBar(
@@ -248,10 +249,22 @@ class _HomePageState extends State<HomePage> {
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    MRIViewer(imageFile: selectedImage),
+                                    Text(selectedPatient?.name ?? "Select a Patient"),
+                                    MRIViewer(
+                                      imageFile: authProvider.selectedImage ?? 
+                                        ((selectedPatient?.url != null && selectedPatient!.url.isNotEmpty) 
+                                          ? File(selectedPatient.url) 
+                                          : null),
+                                    ),
                                     const SizedBox(height: 20),
                                     ElevatedButton(
-                                      onPressed: pickImage,
+                                      onPressed: () async {
+                                        final ImagePicker picker = ImagePicker();
+                                        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                                        if (image != null) {
+                                          authProvider.setSelectedImage(File(image.path)); // Update via Provider
+                                        }
+                                      },
                                       child: const Text("Select MRI Image"),
                                     ),
                                   ],
