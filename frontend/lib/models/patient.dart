@@ -6,6 +6,7 @@ class Patient {
   final String disease;
   final String? notes;
   final DateTime createdAt;
+  final String url;
 
   Patient({
     required this.id,
@@ -15,6 +16,7 @@ class Patient {
     required this.disease,
     this.notes,
     required this.createdAt,
+    required this.url
   });
 
   // Convert to JSON
@@ -27,6 +29,7 @@ class Patient {
       'disease': disease,
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
+      'mriUrl': url
     };
   }
 
@@ -42,6 +45,7 @@ class Patient {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
+      url: json['mriUrl'] ?? ''
     );
   }
 
@@ -54,6 +58,7 @@ class Patient {
     String? disease,
     String? notes,
     DateTime? createdAt,
+    String? url
   }) {
     return Patient(
       id: id ?? this.id,
@@ -63,6 +68,7 @@ class Patient {
       disease: disease ?? this.disease,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
+      url: url ?? this.url
     );
   }
 }

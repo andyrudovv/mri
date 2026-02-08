@@ -50,6 +50,7 @@ class Patient(Base):
     analyses = relationship("MRIAnalysis", back_populates="patient", cascade="all, delete-orphan")
 
     def to_dict(self):
+        latest_analysis = self.analyses[-1] if self.analyses else None
         return {
             "id": self.id,
             "name": self.name,
@@ -58,6 +59,7 @@ class Patient(Base):
             "disease": self.disease,
             "notes": self.notes,
             "createdAt": self.created_at.isoformat(),
+            "url": latest_analysis.image_path if latest_analysis else None,
         }
 
 
