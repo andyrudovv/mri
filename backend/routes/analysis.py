@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Patient, MRIAnalysis, Doctor
 from schemas import MRIAnalysisResponse
-from dependencies import get_current_doctor
+from dependencies import get_current_doctor, get_current_patient
 import tempfile
 import shutil
 import json
@@ -100,7 +100,7 @@ async def analyze_mri(
     try:
         # Make prediction
         prediction_result = make_prediction(tmp_path)
-        
+
         # Save analysis to database
         analysis = MRIAnalysis(
             patient_id=patient_id,
@@ -108,13 +108,24 @@ async def analyze_mri(
             predicted_class=prediction_result["predicted_class"],
             probabilities=json.dumps(prediction_result["probabilities"])
         )
-        
+
+        # Update patient's disease field with the predicted class
+        patient.disease = prediction_result["predicted_class"]
+
         db.add(analysis)
         db.commit()
         db.refresh(analysis)
-        
-        return MRIAnalysisResponse(**analysis.to_dict())
-    
+
+        # Return response with parsed probabilities
+        return MRIAnalysisResponse(
+            id=analysis.id,
+            patientId=analysis.patient_id,
+            imagePath=analysis.image_path,
+            predictedClass=analysis.predicted_class,
+            probabilities=analysis.probabilities,
+            createdAt=analysis.created_at.isoformat()
+        )
+
     finally:
         # Clean up temporary file
         try:
@@ -130,18 +141,115 @@ async def get_patient_analyses(
     db: Session = Depends(get_db)
 ):
     """Get all analyses for a specific patient"""
-    
+
     # Verify patient belongs to current doctor
     patient = db.query(Patient).filter(
         Patient.id == patient_id,
         Patient.doctor_id == current_doctor.id
     ).first()
-    
+
     if not patient:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Patient not found"
         )
-    
-    analyses = db.query(MRIAnalysis).filter(MRIAnalysis.patient_id == patient_id).all()
-    return [MRIAnalysisResponse(**a.to_dict()) for a in analyses]
+
+    analyses = db.query(MRIAnalysis).filter(
+        MRIAnalysis.patient_id == patient_id
+    ).order_by(MRIAnalysis.created_at.desc()).all()
+
+    return [
+        {
+            "id": a.id,
+            "patientId": a.patient_id,
+            "imagePath": a.image_path,
+            "predictedClass": a.predicted_class,
+            "probabilities": a.probabilities,
+            "createdAt": a.created_at.isoformat(),
+        }
+        for a in analyses
+    ]
+
+
+@router.post("/predict-patient", response_model=MRIAnalysisResponse)
+async def analyze_mri_for_patient(
+    file: UploadFile = File(...),
+    current_patient: Patient = Depends(get_current_patient),
+    db: Session = Depends(get_db)
+):
+    """Analyze an MRI image for the current authenticated patient (self-service)"""
+
+    # Validate image type
+    if file.content_type not in ["image/jpeg", "image/png", "image/jpg", "image/webp"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image type. Supported: JPEG, PNG, WebP"
+        )
+
+    # Save uploaded file to temporary location
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
+    finally:
+        file.file.close()
+
+    try:
+        # Make prediction
+        prediction_result = make_prediction(tmp_path)
+
+        # Save analysis to database
+        analysis = MRIAnalysis(
+            patient_id=current_patient.id,
+            image_path=tmp_path,
+            predicted_class=prediction_result["predicted_class"],
+            probabilities=json.dumps(prediction_result["probabilities"])
+        )
+
+        # Update patient's disease field with the predicted class
+        current_patient.disease = prediction_result["predicted_class"]
+
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+
+        # Return response with parsed probabilities
+        return MRIAnalysisResponse(
+            id=analysis.id,
+            patientId=analysis.patient_id,
+            imagePath=analysis.image_path,
+            predictedClass=analysis.predicted_class,
+            probabilities=analysis.probabilities,
+            createdAt=analysis.created_at.isoformat()
+        )
+
+    finally:
+        # Clean up temporary file
+        try:
+            os.remove(tmp_path)
+        except:
+            pass
+
+
+@router.get("/my-analyses", response_model=list)
+async def get_my_analyses(
+    current_patient: Patient = Depends(get_current_patient),
+    db: Session = Depends(get_db)
+):
+    """Get all analyses for the current authenticated patient"""
+
+    analyses = db.query(MRIAnalysis).filter(
+        MRIAnalysis.patient_id == current_patient.id
+    ).order_by(MRIAnalysis.created_at.desc()).all()
+
+    return [
+        {
+            "id": a.id,
+            "patientId": a.patient_id,
+            "imagePath": a.image_path,
+            "predictedClass": a.predicted_class,
+            "probabilities": a.probabilities,
+            "createdAt": a.created_at.isoformat(),
+        }
+        for a in analyses
+    ]

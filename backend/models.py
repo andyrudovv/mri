@@ -36,7 +36,7 @@ class Patient(Base):
     __tablename__ = "patients"
 
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)  # Nullable for self-registered
     name = Column(String(255), nullable=False)
     age = Column(Integer, nullable=False)
     gender = Column(String(50), nullable=False)
@@ -59,7 +59,7 @@ class Patient(Base):
             "disease": self.disease,
             "notes": self.notes,
             "createdAt": self.created_at.isoformat(),
-            "url": latest_analysis.image_path if latest_analysis else None,
+            "url": latest_analysis.image_path if latest_analysis else "",
         }
 
 
@@ -77,12 +77,18 @@ class MRIAnalysis(Base):
     patient = relationship("Patient", back_populates="analyses")
 
     def to_dict(self):
+        import json
+        try:
+            probs = json.loads(self.probabilities) if isinstance(self.probabilities, str) else self.probabilities
+        except:
+            probs = {}
+        
         return {
             "id": self.id,
             "patientId": self.patient_id,
             "imagePath": self.image_path,
             "predictedClass": self.predicted_class,
-            "probabilities": self.probabilities,
+            "probabilities": probs,
             "createdAt": self.created_at.isoformat(),
         }
 

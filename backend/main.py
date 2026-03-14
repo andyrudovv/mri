@@ -10,6 +10,7 @@ from database import engine, Base
 from routes.auth import router as auth_router
 from routes.patients import router as patients_router
 from routes.analysis import router as analysis_router
+from routes.patients_auth import router as patients_auth_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(patients_router)
 app.include_router(analysis_router)
+app.include_router(patients_auth_router)
 
 # Load model once at startup
 predict_model = load_model("ai/trained/MRI_ENSEMBLED.keras")

@@ -3,7 +3,7 @@ class Patient {
   final String name;
   final int age;
   final String gender;
-  final String disease;
+  String disease; // Non-final to allow updates after analysis
   final String? notes;
   final DateTime createdAt;
   final String url;
@@ -29,14 +29,14 @@ class Patient {
       'disease': disease,
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
-      'mriUrl': url
+      'url': url
     };
   }
 
   // Create from JSON
   factory Patient.fromJson(Map<String, dynamic> json) {
     return Patient(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
       age: json['age'] ?? 0,
       gender: json['gender'] ?? '',
@@ -45,7 +45,7 @@ class Patient {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
-      url: json['mriUrl'] ?? ''
+      url: json['url'] ?? ''
     );
   }
 

@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/components/AddPatientDialog.dart';
-import 'package:frontend/components/MRIViewer.dart';
-import 'package:frontend/components/MRIsummary.dart';
 import 'package:frontend/components/SideBar.dart';
 import 'package:frontend/providers/auth_provider.dart';
-
-import 'package:dio/dio.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'package:frontend/pages/profilePage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -18,10 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Dio dio = Dio();
-  File? selectedImage;
-  String predictionResult = "No analysis yet";
-
   /// Show Add Patient Dialog
   Future<void> _showAddPatientDialog(BuildContext context) async {
     final result = await showDialog<Map<String, dynamic>>(
@@ -31,7 +22,7 @@ class _HomePageState extends State<HomePage> {
 
     if (result != null) {
       final authProvider = context.read<AuthProvider>();
-      
+
       // Add patient through auth provider
       final success = await authProvider.addPatient(
         name: result['name'] ?? '',
@@ -56,87 +47,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// Upload & Predict MRI
-  Future<String> predictMRI(File imageFile, int patientId) async {
-    // 1. Updated URL to match backend router prefix and path variable
-    final String url = "http://127.0.0.1:8000/api/analysis/predict/$patientId";
-    
-    // 2. Get the token from AuthProvider
-    final authProvider = context.read<AuthProvider>();
-    final token = authProvider.token;
-
-    String fileName = imageFile.path.split('/').last;
-
-    FormData formData = FormData.fromMap({
-      "file": await MultipartFile.fromFile(
-        imageFile.path,
-        filename: fileName,
-      )
-    });
-
-    try {
-      final response = await dio.post(
-        url, 
-        data: formData,
-        options: Options(
-          headers: {
-            // 3. Add Bearer Token for authentication
-            "Authorization": "Bearer $token",
-          },
-        ),
-      );
-
-      // 4. Access keys using camelCase to match your MRIAnalysisResponse schema
-      final String diagnosis = response.data["predictedClass"];
-      final String probabilities = response.data["probabilities"];
-
-      return "Result: $diagnosis\n$probabilities";
-    } catch (e) {
-      if (e is DioException) {
-        return "Error: ${e.response?.data['detail'] ?? 'Connection failed'}";
-      }
-      return "error";
-    }
-  }
-
-  /// Run prediction
-  Future runAnalysis() async {
-    final authProvider = context.read<AuthProvider>();
-    
-    if (selectedImage == null) {
-      setState(() => predictionResult = "Please select an MRI image first.");
-      return;
-    }
-
-    // Safety check: Ensure there is at least one patient to attach this analysis to
-    if (authProvider.patients.isEmpty) {
-      setState(() => predictionResult = "Please add a patient first.");
-      return;
-    }
-
-    // For now, we take the first patient. Ideally, you'd have a 'selectedPatientId'
-    int patientId = authProvider.patients.first.id;
-
-    setState(() => predictionResult = "Analysing...");
-    
-    String result = await predictMRI(selectedImage!, patientId);
-
-    setState(() {
-      predictionResult = result;
-    });
-  }
-  /// Select MRI image
-  Future pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) return;
-
-    setState(() {
-      selectedImage = File(image.path);
-    });
-  }
-  
   /// ---------------------------
   /// UI
   /// ---------------------------
@@ -148,7 +58,6 @@ class _HomePageState extends State<HomePage> {
         appBar: null,
         body: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
-            final selectedPatient = authProvider.selectedPatient;
             return Row(
               children: [
                 SideBar(
@@ -168,38 +77,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Row(
                               children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.greenAccent,
-                                  radius: 15,
-                                  backgroundImage: authProvider
-                                              .currentDoctor?.profileImage !=
-                                          null
-                                      ? NetworkImage(
-                                          authProvider.currentDoctor!.profileImage!)
-                                      : null,
-                                ),
                                 const SizedBox(width: 8),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      authProvider.currentDoctor?.name ??
-                                          'Doctor',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      authProvider.currentDoctor?.specialization ??
-                                          'Specialist',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                             PopupMenuButton<String>(
@@ -207,7 +85,12 @@ class _HomePageState extends State<HomePage> {
                                 if (value == 'logout') {
                                   _handleLogout(context);
                                 } else if (value == 'profile') {
-                                  // Handle profile edit
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ProfilePage(),
+                                    ),
+                                  );
                                 }
                               },
                               itemBuilder: (BuildContext context) => [
@@ -239,51 +122,33 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
                       Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                /// MRI Viewer
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(selectedPatient?.name ?? "Select a Patient"),
-                                    MRIViewer(
-                                      imageFile: authProvider.selectedImage ?? 
-                                        ((selectedPatient?.url != null && selectedPatient!.url.isNotEmpty) 
-                                          ? File(selectedPatient.url) 
-                                          : null),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        final ImagePicker picker = ImagePicker();
-                                        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                                        if (image != null) {
-                                          authProvider.setSelectedImage(File(image.path)); // Update via Provider
-                                        }
-                                      },
-                                      child: const Text("Select MRI Image"),
-                                    ),
-                                  ],
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.medical_services_outlined,
+                                size: 120,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'Select a patient from the sidebar',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey.shade600,
                                 ),
-                                /// MRI Summary panel
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: runAnalysis,
-                                      child: const Text("Get Analysis"),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    MRIsummary(result: predictionResult),
-                                  ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'to view details and run analysis',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade500,
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

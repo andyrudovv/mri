@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
@@ -19,6 +19,18 @@ class PatientUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class PatientRegister(BaseModel):
+    name: str = Field(..., min_length=2, max_length=255)
+    age: int = Field(..., ge=0, le=150)
+    gender: str = Field(..., min_length=1)
+    notes: Optional[str] = None
+
+
+class PatientLogin(BaseModel):
+    name: str
+    disease: str
+
+
 class PatientResponse(BaseModel):
     id: int
     name: str
@@ -30,6 +42,11 @@ class PatientResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PatientAuthResponse(BaseModel):
+    token: str
+    patient: PatientResponse
 
 
 class DoctorRegister(BaseModel):
@@ -56,7 +73,7 @@ class DoctorResponse(BaseModel):
     email: str
     specialization: str
     profileImage: Optional[str]
-    patients: List[PatientResponse] = []
+    patients: List["PatientResponse"] = []
     createdAt: str
 
     class Config:
@@ -79,7 +96,7 @@ class MRIAnalysisResponse(BaseModel):
     patientId: int
     imagePath: str
     predictedClass: str
-    probabilities: str
+    probabilities: Dict[str, float]
     createdAt: str
 
     class Config:

@@ -172,11 +172,11 @@ class AuthService {
 
       if (response.statusCode == 200) {
         _dio.options.headers['Authorization'] = 'Bearer $token';
-        final doctorJson = response.data['doctor'] as Map<String, dynamic>;
+        // Backend returns DoctorResponse directly (see auth.py get_current_user)
+        final doctorJson = response.data as Map<String, dynamic>;
         return Doctor.fromJson(doctorJson);
       }
     } catch (e) {
-      print('Token verification error: $e');
       await logout();
     }
     return null;
@@ -223,8 +223,8 @@ class AuthService {
 Future<void> deletePatient(dynamic patientId) async {
   try {
     final token = getToken();
-    final response = await _dio.delete(
-      '/api/patients/${patientId.toString()}', // Convert to string for the URL
+    await _dio.delete(
+      '/api/patients/${patientId.toString()}',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
   } on DioException catch (e) {

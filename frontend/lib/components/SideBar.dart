@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/models/patient.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/pages/analysisPage.dart';
 
 class SideBar extends StatefulWidget {
   const SideBar({
@@ -166,8 +167,12 @@ class _PatientCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           Provider.of<AuthProvider>(context, listen: false).selectPatient(patient);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Selected: ${patient.name}')),
+          // Navigate to analysis page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AnalysisPage(patient: patient),
+            ),
           );
         },
         child: Container(
