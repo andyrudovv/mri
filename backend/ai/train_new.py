@@ -25,15 +25,18 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(SCRIPT_DIR, "dataset_30classes")
 
 def ensure_dataset():
-    """Download the 30-classes dataset via kagglehub if not already present locally."""
+    """Download the 30-classes dataset via kagglehub into ./dataset/ if not already present."""
     if os.path.exists(DATASET_DIR) and os.path.isfile(os.path.join(DATASET_DIR, "DATA.json")):
         print(f"Dataset already exists at: {DATASET_DIR}")
         return DATASET_DIR
     
     print("Downloading dataset via kagglehub...")
-    path = kagglehub.dataset_download("fernando2rad/brain-tumor-mri-images-30-classes")
+    path = kagglehub.dataset_download(
+        "fernando2rad/brain-tumor-mri-images-30-classes",
+        output_dir=DATASET_DIR
+    )
     print(f"Dataset downloaded to: {path}")
-    return path
+    return DATASET_DIR
 
 DATASET_PATH = ensure_dataset()
 JSON_PATH = os.path.join(DATASET_PATH, "DATA.json")
