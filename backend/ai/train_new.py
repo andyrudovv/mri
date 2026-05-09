@@ -302,7 +302,7 @@ if __name__ == "__main__":
     
     callbacks_p1 = [
         tf.keras.callbacks.ModelCheckpoint(best_model_path, save_best_only=True, monitor="val_class_output_accuracy", mode="max"),
-        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_class_output_loss", factor=0.5, patience=4, min_lr=1e-6, verbose=1),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_class_output_loss", factor=0.5, patience=4, min_lr=1e-6, verbose=1, mode="min"),
         tf.keras.callbacks.EarlyStopping(monitor="val_class_output_accuracy", patience=10, restore_best_weights=True, mode="max"),
         EpochSummaryReport()
     ]
