@@ -190,18 +190,27 @@ class AuthService {
     required String gender,
     required String disease,
     String? notes,
+    String? iin,
+    String? password,
   }) async {
     try {
       final token = getToken();
+      final data = {
+        'name': name,
+        'age': age,
+        'gender': gender,
+        'disease': disease,
+        'notes': notes,
+      };
+      if (iin != null && iin.isNotEmpty) {
+        data['iin'] = iin;
+      }
+      if (password != null && password.isNotEmpty) {
+        data['password'] = password;
+      }
       final response = await _dio.post(
         '/api/patients',
-        data: {
-          'name': name,
-          'age': age,
-          'gender': gender,
-          'disease': disease,
-          'notes': notes,
-        },
+        data: data,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -252,6 +261,26 @@ Future<void> deletePatient(dynamic patientId) async {
       throw Exception('Error fetching patients: ${e.message}');
     }
   }
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final token = getToken();
+      final response = await _dio.put(
+        '/api/auth/change-password',
+        data: {
+          'old_password': oldPassword,
+          'new_password': newPassword,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to change password');
+    }
+  }
+
     /// Update doctor profile
   Future<Doctor> updateProfile({
     required String name,

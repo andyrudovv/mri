@@ -13,7 +13,6 @@ class PatientAuthProvider extends ChangeNotifier {
 
   PatientAuthProvider(this._authService);
 
-  /// Initialize auth provider
   Future<void> init() async {
     await _authService.init();
     _token = _authService.getToken();
@@ -32,18 +31,18 @@ class PatientAuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Getters
   Patient? get currentPatient => _currentPatient;
   String? get token => _token;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _isLoggedIn;
 
-  /// Register a new patient
   Future<bool> register({
+    required String iin,
     required String name,
     required int age,
     required String gender,
+    required String password,
     String? notes,
   }) async {
     _isLoading = true;
@@ -52,9 +51,11 @@ class PatientAuthProvider extends ChangeNotifier {
 
     try {
       final result = await _authService.register(
+        iin: iin,
         name: name,
         age: age,
         gender: gender,
+        password: password,
         notes: notes,
       );
 
@@ -73,10 +74,9 @@ class PatientAuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Login a patient
   Future<bool> login({
-    required String name,
-    required String disease,
+    required String iin,
+    required String password,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -84,8 +84,8 @@ class PatientAuthProvider extends ChangeNotifier {
 
     try {
       final result = await _authService.login(
-        name: name,
-        disease: disease,
+        iin: iin,
+        password: password,
       );
 
       _currentPatient = result.patient;
@@ -103,7 +103,6 @@ class PatientAuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Logout
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
@@ -118,7 +117,30 @@ class PatientAuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clear error message
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

@@ -36,12 +36,14 @@ class Patient(Base):
     __tablename__ = "patients"
 
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)  # Nullable for self-registered
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)
+    iin = Column(String(12), unique=True, index=True, nullable=True)
     name = Column(String(255), nullable=False)
     age = Column(Integer, nullable=False)
     gender = Column(String(50), nullable=False)
-    disease = Column(String(255), nullable=False)
+    disease = Column(String(255), nullable=True, default="")
     notes = Column(Text, nullable=True)
+    password_hash = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -51,13 +53,21 @@ class Patient(Base):
 
     def to_dict(self):
         latest_analysis = self.analyses[-1] if self.analyses else None
+        doctor_name = None
+        doctor_specialization = None
+        if self.doctor:
+            doctor_name = self.doctor.name
+            doctor_specialization = self.doctor.specialization
         return {
             "id": self.id,
+            "iin": self.iin,
             "name": self.name,
             "age": self.age,
             "gender": self.gender,
-            "disease": self.disease,
+            "disease": self.disease or "",
             "notes": self.notes,
+            "doctorName": doctor_name,
+            "doctorSpecialization": doctor_specialization,
             "createdAt": self.created_at.isoformat(),
             "url": latest_analysis.image_path if latest_analysis else "",
         }

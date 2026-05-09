@@ -20,7 +20,6 @@ class AuthProvider extends ChangeNotifier {
   File? _selectedImage;
   File? get selectedImage => _selectedImage;
 
-  // Getters
   Doctor? get currentDoctor => _currentDoctor;
   String? get token => _token;
   bool get isLoading => _isLoading;
@@ -30,7 +29,6 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider(this._authService);
 
-  /// Initialize auth provider - check if there's a stored token
   Future<void> init() async {
     await _authService.init();
     _token = _authService.getToken();
@@ -40,7 +38,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Register a new doctor
   Future<bool> register({
     required String name,
     required String email,
@@ -64,7 +61,6 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = true;
       _isLoading = false;
       notifyListeners();
-
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -74,7 +70,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Login a doctor
   Future<bool> login({
     required String email,
     required String password,
@@ -84,17 +79,13 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _authService.login(
-        email: email,
-        password: password,
-      );
+      final result = await _authService.login(email: email, password: password);
 
       _currentDoctor = result.doctor;
       _token = result.token;
       _isLoggedIn = true;
       _isLoading = false;
       notifyListeners();
-
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -104,7 +95,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Verify token validity
   Future<void> verifyToken() async {
     try {
       final doctor = await _authService.verifyToken();
@@ -122,12 +112,10 @@ class AuthProvider extends ChangeNotifier {
       _currentDoctor = null;
       _token = null;
       await _authService.clearCache();
-      print('Token verification failed: $e');
     }
     notifyListeners();
   }
 
-  /// Logout
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
@@ -142,13 +130,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Add a patient
   Future<bool> addPatient({
     required String name,
     required int age,
     required String gender,
     required String disease,
     String? notes,
+    String? iin,
+    String? password,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -161,32 +150,31 @@ class AuthProvider extends ChangeNotifier {
         gender: gender,
         disease: disease,
         notes: notes,
+        iin: iin,
+        password: password,
       );
 
       _currentDoctor = updatedDoctor;
       _isLoading = false;
       notifyListeners();
-
       return true;
     } catch (e) {
       final errorMsg = e.toString();
       _errorMessage = errorMsg;
-      
-      // Check if error indicates unauthorized access (token invalid)
+
       if (errorMsg.contains('401') || errorMsg.contains('Unauthorized')) {
         _isLoggedIn = false;
         _currentDoctor = null;
         _token = null;
         await _authService.clearCache();
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Remove a patient
   Future<bool> removePatient(dynamic patientId) async {
     _isLoading = true;
     notifyListeners();
@@ -195,7 +183,6 @@ class AuthProvider extends ChangeNotifier {
       await _authService.deletePatient(patientId);
 
       if (_currentDoctor != null) {
-        // Ensure your Doctor model's removePatient also handles dynamic/int IDs
         _currentDoctor = _currentDoctor!.removePatient(patientId);
       }
 
@@ -210,7 +197,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Update doctor profile
   Future<bool> updateProfile({
     required String name,
     required String specialization,
@@ -230,7 +216,6 @@ class AuthProvider extends ChangeNotifier {
       _currentDoctor = updatedDoctor;
       _isLoading = false;
       notifyListeners();
-
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -240,7 +225,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Clear error message
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

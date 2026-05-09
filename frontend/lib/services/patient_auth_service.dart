@@ -48,20 +48,23 @@ class PatientAuthService {
     _dio.options.headers.remove('Authorization');
   }
 
-  /// Register a new patient
   Future<({Patient patient, String token})> register({
+    required String iin,
     required String name,
     required int age,
     required String gender,
+    required String password,
     String? notes,
   }) async {
     try {
       final response = await _dio.post(
         '/api/patients-auth/register',
         data: {
+          'iin': iin,
           'name': name,
           'age': age,
           'gender': gender,
+          'password': password,
           'notes': notes,
         },
       );
@@ -84,17 +87,16 @@ class PatientAuthService {
     }
   }
 
-  /// Login a patient
   Future<({Patient patient, String token})> login({
-    required String name,
-    required String disease,
+    required String iin,
+    required String password,
   }) async {
     try {
       final response = await _dio.post(
         '/api/patients-auth/login',
         data: {
-          'name': name,
-          'disease': disease,
+          'iin': iin,
+          'password': password,
         },
       );
 
@@ -116,26 +118,12 @@ class PatientAuthService {
     }
   }
 
-  /// Logout
   Future<void> logout() async {
-    try {
-      final token = getToken();
-      if (token != null) {
-        await _dio.post(
-          '/api/patients-auth/logout',
-          options: Options(headers: {'Authorization': 'Bearer $token'}),
-        );
-      }
-    } catch (e) {
-      print('Logout error: $e');
-    }
-
     await _prefs?.remove(_tokenKey);
     await _prefs?.remove(_patientKey);
     _dio.options.headers.remove('Authorization');
   }
 
-  /// Get current patient
   Future<Patient?> getCurrentPatient() async {
     final token = getToken();
     if (token == null) return null;
@@ -154,5 +142,25 @@ class PatientAuthService {
       await logout();
     }
     return null;
+  }
+
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final token = getToken();
+      final response = await _dio.put(
+        '/api/patients-auth/change-password',
+        data: {
+          'old_password': oldPassword,
+          'new_password': newPassword,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to change password');
+    }
   }
 }

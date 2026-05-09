@@ -5,6 +5,11 @@ pillow
 matplotlib
 scikit-learn
 h5py
+pydicom
+kagglehub
+opencv-python
+albumentations
+seaborn
 
 # Backend & Framework
 fastapi[standard]

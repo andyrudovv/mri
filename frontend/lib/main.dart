@@ -13,7 +13,6 @@ import 'package:frontend/services/patient_auth_service.dart';
 void main() async {
   setPathUrlStrategy();
 
-  // Initialize auth services
   final authService = AuthService();
   final patientAuthService = PatientAuthService();
   await authService.init();
@@ -45,7 +44,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Verify tokens on app startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().verifyToken();
       context.read<PatientAuthProvider>().init();
@@ -57,6 +55,40 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'MRI Analysis',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFF0077B6),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFB),
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 2,
+          shadowColor: Colors.black12,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 1,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        dividerTheme: DividerThemeData(
+          color: Colors.grey.shade200,
+          thickness: 1,
+        ),
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => _buildHome(),

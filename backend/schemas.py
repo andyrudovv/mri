@@ -7,8 +7,10 @@ class PatientCreate(BaseModel):
     name: str
     age: int = Field(..., ge=0, le=150)
     gender: str
-    disease: str
+    disease: Optional[str] = ""
     notes: Optional[str] = None
+    iin: Optional[str] = Field(None, min_length=12, max_length=12)
+    password: Optional[str] = Field(None, min_length=6)
 
 
 class PatientUpdate(BaseModel):
@@ -17,27 +19,33 @@ class PatientUpdate(BaseModel):
     gender: Optional[str] = None
     disease: Optional[str] = None
     notes: Optional[str] = None
+    iin: Optional[str] = Field(None, min_length=12, max_length=12)
 
 
 class PatientRegister(BaseModel):
+    iin: str = Field(..., min_length=12, max_length=12)
     name: str = Field(..., min_length=2, max_length=255)
     age: int = Field(..., ge=0, le=150)
     gender: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=6)
     notes: Optional[str] = None
 
 
 class PatientLogin(BaseModel):
-    name: str
-    disease: str
+    iin: str = Field(..., min_length=12, max_length=12)
+    password: str
 
 
 class PatientResponse(BaseModel):
     id: int
+    iin: Optional[str] = None
     name: str
     age: int
     gender: str
     disease: str
-    notes: Optional[str]
+    notes: Optional[str] = None
+    doctorName: Optional[str] = None
+    doctorSpecialization: Optional[str] = None
     createdAt: str
 
     class Config:
@@ -72,7 +80,7 @@ class DoctorResponse(BaseModel):
     name: str
     email: str
     specialization: str
-    profileImage: Optional[str]
+    profileImage: Optional[str] = None
     patients: List["PatientResponse"] = []
     createdAt: str
 
@@ -91,12 +99,18 @@ class TokenData(BaseModel):
     exp: Optional[datetime] = None
 
 
+class ChangePasswordSchema(BaseModel):
+    old_password: str
+    new_password: str = Field(..., min_length=6)
+
+
 class MRIAnalysisResponse(BaseModel):
     id: int
     patientId: int
     imagePath: str
     predictedClass: str
     probabilities: Dict[str, float]
+    aiSummary: Optional[str] = None
     createdAt: str
 
     class Config:
