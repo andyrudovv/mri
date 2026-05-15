@@ -115,3 +115,12 @@ class MRIAnalysisResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class GenerateAiSummaryRequest(BaseModel):
+    predictedClass: str
+    probabilities: Dict[str, float]
+
+
+class GenerateAiSummaryResponse(BaseModel):
+    aiSummary: str

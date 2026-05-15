@@ -21,3 +21,4 @@ python-jose[cryptography]
 passlib[argon2]
 python-multipart
 python-dotenv
+google-genai>=2.0.0

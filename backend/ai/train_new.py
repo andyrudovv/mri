@@ -341,7 +341,12 @@ if __name__ == "__main__":
     ]
     
     history_p2 = model.fit(train_gen, validation_data=val_gen, epochs=args.epochs_finetune, callbacks=callbacks_p2)
+    
+    classes_path = os.path.join(MODELS_DIR, f"{backbone}_classes.json")
+    with open(classes_path, 'w') as f:
+        json.dump(classes_list, f)
     print(f"Training completely finished. Final model saved at: {finetuned_model_path}")
+    print(f"Classes saved at: {classes_path}")
 
 
     from sklearn.metrics import confusion_matrix, classification_report

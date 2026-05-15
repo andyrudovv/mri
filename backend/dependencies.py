@@ -1,3 +1,5 @@
+from typing import Union
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -81,3 +83,43 @@ async def get_current_patient(
         )
 
     return patient
+
+
+async def get_current_doctor_or_patient(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> Union[Doctor, Patient]:
+    """Accept either a doctor JWT (sub = email) or a patient JWT (sub = patient:id)."""
+    token = credentials.credentials
+    payload = decode_token(token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    sub = payload.get("sub")
+    if sub is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if isinstance(sub, str) and sub.startswith("patient:"):
+        patient_id = int(sub.split(":")[1])
+        patient = db.query(Patient).filter(Patient.id == patient_id).first()
+        if patient is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Patient not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return patient
+    doctor = db.query(Doctor).filter(Doctor.email == sub).first()
+    if doctor is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Doctor not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return doctor

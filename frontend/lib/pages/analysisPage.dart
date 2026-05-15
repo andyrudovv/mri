@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/services/analysis_summary_api.dart';
 import 'package:frontend/models/patient.dart';
 import 'package:frontend/utils/disease_info.dart';
 import 'package:dio/dio.dart';
@@ -9,6 +10,14 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+
+bool _analysisHasPathology(String predictedClass) {
+  final t = predictedClass.trim();
+  if (t.isEmpty) return false;
+  if (t.toLowerCase() == 'notumor') return false;
+  if (t.startsWith('Normal ')) return false;
+  return true;
+}
 
 class AnalysisPage extends StatefulWidget {
   final Patient patient;
@@ -27,6 +36,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
   String? aiSummary;
   bool _isAnalyzing = false;
   List<Map<String, dynamic>> _analysisHistory = [];
+  String _selectedModel = "ensemble";
+
+  static const Map<String, String> _modelOptions = {
+    "ensemble": "MRI Ensemble (4 classes)",
+    "efficientnet": "EfficientNetV2S (30 classes)",
+  };
 
   @override
   void initState() {
@@ -85,6 +100,40 @@ class _AnalysisPageState extends State<AnalysisPage> {
     } catch (e) {
       debugPrint('Error loading analysis history: $e');
     }
+    if (_analysisHistory.isNotEmpty) {
+      final latest = _analysisHistory.first;
+      final pred = latest['predictedClass'] as String? ?? '';
+      Map<String, dynamic>? latestProbs;
+      try {
+        final probs = latest['probabilities'];
+        if (probs is String) {
+          latestProbs = Map<String, dynamic>.from(json.decode(probs));
+        } else if (probs is Map) {
+          latestProbs = Map<String, dynamic>.from(probs);
+        }
+      } catch (_) {}
+      await _refreshGenerativeAiSummary(token, pred, latestProbs);
+    }
+  }
+
+  Future<void> _refreshGenerativeAiSummary(
+    String token,
+    String predictedClass,
+    Map<String, dynamic>? probs,
+  ) async {
+    if (!_analysisHasPathology(predictedClass) || probs == null || probs.isEmpty) return;
+    try {
+      final s = await AnalysisSummaryApi.fetchGenerativeSummary(
+        token: token,
+        predictedClass: predictedClass,
+        probabilities: probs,
+      );
+      if (s != null && s.isNotEmpty && mounted) {
+        setState(() => aiSummary = s);
+      }
+    } catch (e) {
+      debugPrint('generate-summary failed: $e');
+    }
   }
 
   Future<String> predictMRI(Uint8List imageBytes, int patientId) async {
@@ -94,7 +143,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
     final filename = selectedImagePath ?? "mri_image.jpg";
     FormData formData = FormData.fromMap({
-      "file": MultipartFile.fromBytes(imageBytes, filename: filename)
+      "file": MultipartFile.fromBytes(imageBytes, filename: filename),
+      "model_type": _selectedModel,
     });
 
     try {
@@ -504,6 +554,34 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF023E8A)),
                           ),
                           const SizedBox(height: 14),
+
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFF0077B6).withOpacity(0.3)),
+                              color: const Color(0xFFF0F7FF),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedModel,
+                                isExpanded: true,
+                                icon: const Icon(Icons.model_training, color: Color(0xFF0077B6)),
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF023E8A), fontWeight: FontWeight.w500),
+                                items: _modelOptions.entries.map((entry) {
+                                  return DropdownMenuItem<String>(
+                                    value: entry.key,
+                                    child: Text(entry.value),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) setState(() => _selectedModel = value);
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
 
                           SizedBox(
                             width: double.infinity,
