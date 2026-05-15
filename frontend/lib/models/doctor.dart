@@ -1,11 +1,12 @@
 import 'patient.dart';
 
 class Doctor {
-  final dynamic id; // Can be int or String
+  final dynamic id;
   final String name;
   final String email;
   final String specialization;
   final String? profileImage;
+  final bool emailVerified;
   final List<Patient> patients;
   final DateTime createdAt;
 
@@ -15,6 +16,7 @@ class Doctor {
     required this.email,
     required this.specialization,
     this.profileImage,
+    this.emailVerified = false,
     this.patients = const [],
     required this.createdAt,
   });
@@ -36,13 +38,12 @@ class Doctor {
   // Inside doctor.dart
 factory Doctor.fromJson(Map<String, dynamic> json) {
   return Doctor(
-    // Force ID to String if it comes as an int from Postgres
     id: json['id'].toString(), 
     name: json['name'] ?? '',
     email: json['email'] ?? '',
     specialization: json['specialization'] ?? '',
     profileImage: json['profileImage'],
-    // Defensive check for patients list
+    emailVerified: json['emailVerified'] ?? false,
     patients: (json['patients'] as List<dynamic>?)
             ?.map((p) => Patient.fromJson(p as Map<String, dynamic>))
             .toList() ?? [], 
@@ -59,6 +60,7 @@ factory Doctor.fromJson(Map<String, dynamic> json) {
     String? email,
     String? specialization,
     String? profileImage,
+    bool? emailVerified,
     List<Patient>? patients,
     DateTime? createdAt,
   }) {
@@ -68,6 +70,7 @@ factory Doctor.fromJson(Map<String, dynamic> json) {
       email: email ?? this.email,
       specialization: specialization ?? this.specialization,
       profileImage: profileImage ?? this.profileImage,
+      emailVerified: emailVerified ?? this.emailVerified,
       patients: patients ?? this.patients,
       createdAt: createdAt ?? this.createdAt,
     );

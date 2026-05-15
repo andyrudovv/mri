@@ -5,6 +5,7 @@ import 'package:frontend/pages/authPage.dart';
 import 'package:frontend/pages/homePage.dart';
 import 'package:frontend/pages/profilePage.dart';
 import 'package:frontend/pages/patientHomePage.dart';
+import 'package:frontend/pages/otp_verification_page.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/patient_auth_provider.dart';
 import 'package:frontend/services/auth_service.dart';
@@ -103,6 +104,18 @@ class _MyAppState extends State<MyApp> {
     return Consumer2<AuthProvider, PatientAuthProvider>(
       builder: (context, authProvider, patientAuthProvider, _) {
         if (authProvider.isLoggedIn) {
+          final doctor = authProvider.currentDoctor;
+          if (doctor != null && !doctor.emailVerified) {
+            final authService = AuthService();
+            authService.init();
+            return OtpVerificationPage(
+              email: doctor.email,
+              authService: authService,
+              onVerified: () {
+                authProvider.verifyToken();
+              },
+            );
+          }
           return const HomePage();
         } else if (patientAuthProvider.isLoggedIn) {
           return const PatientHomePage();

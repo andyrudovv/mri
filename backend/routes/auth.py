@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
@@ -5,6 +7,7 @@ from models import Doctor
 from schemas import (
     DoctorRegister, DoctorLogin, AuthResponse,
     DoctorResponse, DoctorUpdate, ChangePasswordSchema,
+    OtpRequest, OtpVerify,
 )
 from security import (
     hash_password,
@@ -13,8 +16,18 @@ from security import (
     create_refresh_token,
 )
 from dependencies import get_current_doctor
+from email_service import generate_otp, get_otp_expiry, send_otp_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+
+def _send_otp_to_doctor(doctor: Doctor, db: Session) -> None:
+    """Generate a 6-digit OTP, persist it, and send the email."""
+    otp = generate_otp()
+    doctor.otp_code = otp
+    doctor.otp_expires_at = get_otp_expiry()
+    db.commit()
+    send_otp_email(doctor.email, otp)
 
 
 @router.post("/register", response_model=AuthResponse)
@@ -34,11 +47,14 @@ async def register(
         email=doctor_data.email,
         password_hash=hash_password(doctor_data.password),
         specialization=doctor_data.specialization,
+        email_verified=False,
     )
 
     db.add(new_doctor)
     db.commit()
     db.refresh(new_doctor)
+
+    _send_otp_to_doctor(new_doctor, db)
 
     access_token = create_access_token(data={"sub": new_doctor.email})
     refresh_token = create_refresh_token(data={"sub": new_doctor.email})
@@ -68,6 +84,9 @@ async def login(
             detail="Invalid email or password"
         )
 
+    if not doctor.email_verified:
+        _send_otp_to_doctor(doctor, db)
+
     access_token = create_access_token(data={"sub": doctor.email})
     refresh_token = create_refresh_token(data={"sub": doctor.email})
 
@@ -76,6 +95,51 @@ async def login(
         "refresh_token": refresh_token,
         "doctor": DoctorResponse(**doctor.to_dict()),
     }
+
+
+@router.post("/send-otp")
+async def send_otp(
+    body: OtpRequest,
+    db: Session = Depends(get_db),
+):
+    """(Re-)send a 6-digit OTP to the doctor's email."""
+    doctor = db.query(Doctor).filter(Doctor.email == body.email).first()
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    if doctor.email_verified:
+        return {"message": "Email already verified"}
+
+    _send_otp_to_doctor(doctor, db)
+    return {"message": "OTP sent"}
+
+
+@router.post("/verify-otp")
+async def verify_otp(
+    body: OtpVerify,
+    db: Session = Depends(get_db),
+):
+    """Verify the 6-digit OTP and mark the email as verified."""
+    doctor = db.query(Doctor).filter(Doctor.email == body.email).first()
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    if doctor.email_verified:
+        return {"message": "Email already verified", "verified": True}
+
+    if not doctor.otp_code or not doctor.otp_expires_at:
+        raise HTTPException(status_code=400, detail="No OTP was requested")
+
+    if datetime.utcnow() > doctor.otp_expires_at:
+        raise HTTPException(status_code=400, detail="OTP expired, request a new one")
+
+    if doctor.otp_code != body.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    doctor.email_verified = True
+    doctor.otp_code = None
+    doctor.otp_expires_at = None
+    db.commit()
+
+    return {"message": "Email verified successfully", "verified": True}
 
 
 @router.post("/logout")

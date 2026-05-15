@@ -81,6 +81,7 @@ class DoctorResponse(BaseModel):
     email: str
     specialization: str
     profileImage: Optional[str] = None
+    emailVerified: bool = False
     patients: List["PatientResponse"] = []
     createdAt: str
 
@@ -92,6 +93,15 @@ class AuthResponse(BaseModel):
     token: str
     refresh_token: Optional[str] = None
     doctor: DoctorResponse
+
+
+class OtpRequest(BaseModel):
+    email: EmailStr
+
+
+class OtpVerify(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=6, max_length=6)
 
 
 class TokenData(BaseModel):

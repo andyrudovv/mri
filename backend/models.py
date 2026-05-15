@@ -13,6 +13,9 @@ class Doctor(Base):
     password_hash = Column(String(255), nullable=False)
     specialization = Column(String(255), nullable=False)
     profile_image = Column(String(500), nullable=True)
+    email_verified = Column(Boolean, default=False, nullable=False)
+    otp_code = Column(String(6), nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -27,6 +30,7 @@ class Doctor(Base):
             "email": self.email,
             "specialization": self.specialization,
             "profileImage": self.profile_image,
+            "emailVerified": self.email_verified,
             "patients": [p.to_dict() for p in self.patients],
             "createdAt": self.created_at.isoformat(),
         }

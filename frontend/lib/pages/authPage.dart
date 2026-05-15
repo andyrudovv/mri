@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/patient_auth_provider.dart';
+import 'package:frontend/pages/otp_verification_page.dart';
+import 'package:frontend/services/auth_service.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -57,6 +59,28 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
+  void _navigateToOtpOrHome(BuildContext context, AuthProvider authProvider) {
+    if (!mounted) return;
+    final doctor = authProvider.currentDoctor;
+    if (doctor != null && !doctor.emailVerified) {
+      final authService = AuthService();
+      authService.init().then((_) {
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => OtpVerificationPage(
+            email: doctor.email,
+            authService: authService,
+            onVerified: () {
+              authProvider.verifyToken();
+            },
+          ),
+        ));
+      });
+    } else {
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
   Future<void> _handleDoctorAuth(BuildContext context) async {
     final authProvider = context.read<AuthProvider>();
 
@@ -67,7 +91,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       );
 
       if (success && mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        _navigateToOtpOrHome(context, authProvider);
       } else if (mounted && authProvider.errorMessage != null) {
         _showErrorSnackBar(authProvider.errorMessage!);
       }
@@ -85,7 +109,7 @@ class _AuthPageState extends State<AuthPage> with SingleTickerProviderStateMixin
       );
 
       if (success && mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        _navigateToOtpOrHome(context, authProvider);
       } else if (mounted && authProvider.errorMessage != null) {
         _showErrorSnackBar(authProvider.errorMessage!);
       }

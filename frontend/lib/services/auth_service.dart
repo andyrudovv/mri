@@ -281,7 +281,26 @@ Future<void> deletePatient(dynamic patientId) async {
     }
   }
 
-    /// Update doctor profile
+  Future<void> sendOtp({required String email}) async {
+    try {
+      await _dio.post('/api/auth/send-otp', data: {'email': email});
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to send OTP');
+    }
+  }
+
+  Future<bool> verifyOtp({required String email, required String otp}) async {
+    try {
+      final response = await _dio.post(
+        '/api/auth/verify-otp',
+        data: {'email': email, 'otp': otp},
+      );
+      return response.data['verified'] == true;
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'OTP verification failed');
+    }
+  }
+
   Future<Doctor> updateProfile({
     required String name,
     required String specialization,

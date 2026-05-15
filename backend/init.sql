@@ -8,9 +8,26 @@ CREATE TABLE IF NOT EXISTS doctors (
     password_hash VARCHAR(255) NOT NULL,
     specialization VARCHAR(255) NOT NULL,
     profile_image VARCHAR(500),
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    otp_code VARCHAR(6),
+    otp_expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration helper: add OTP columns if upgrading an existing DB
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='doctors' AND column_name='email_verified') THEN
+        ALTER TABLE doctors ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='doctors' AND column_name='otp_code') THEN
+        ALTER TABLE doctors ADD COLUMN otp_code VARCHAR(6);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='doctors' AND column_name='otp_expires_at') THEN
+        ALTER TABLE doctors ADD COLUMN otp_expires_at TIMESTAMP;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS patients (
     id SERIAL PRIMARY KEY,
