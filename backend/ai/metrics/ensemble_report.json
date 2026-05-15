@@ -1,0 +1,34 @@
+{
+  "model": "Ensemble (VGG16+ResNet50+CNN)",
+  "accuracy": 0.9679633867276888,
+  "macro_precision": 0.9661411919047604,
+  "macro_recall": 0.9666394335511982,
+  "macro_specificity": 0.9894774657770162,
+  "macro_f1": 0.9663395118581626,
+  "per_class": {
+    "glioma": {
+      "precision": 0.9509803921568627,
+      "recall": 0.97,
+      "specificity": 0.9851632047477745,
+      "f1": 0.9603960396039604
+    },
+    "meningioma": {
+      "precision": 0.95,
+      "recall": 0.9313725490196079,
+      "specificity": 0.9850746268656716,
+      "f1": 0.9405940594059405
+    },
+    "notumor": {
+      "precision": 0.9900744416873449,
+      "recall": 0.9851851851851852,
+      "specificity": 0.9955849889624724,
+      "f1": 0.9876237623762376
+    },
+    "pituitary": {
+      "precision": 0.9735099337748344,
+      "recall": 0.98,
+      "specificity": 0.9920870425321464,
+      "f1": 0.9767441860465116
+    }
+  }
+}

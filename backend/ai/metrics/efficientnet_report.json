@@ -1,0 +1,190 @@
+{
+  "model": "EfficientNetV2S (30 classes)",
+  "accuracy": 0.9911504424778761,
+  "macro_precision": 0.16588987946153436,
+  "macro_recall": 0.16521313838575152,
+  "macro_specificity": 0.9996661853780854,
+  "macro_f1": 0.16554761958079509,
+  "per_class": {
+    "Astrocytoma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Astrocytoma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Astrocytoma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Ependymoma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Ependymoma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Ependymoma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9995575221238938,
+      "f1": 0.0
+    },
+    "Glioma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Glioma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9995575221238938,
+      "f1": 0.0
+    },
+    "Glioma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Hemangiopericytoma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Hemangiopericytoma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Hemangiopericytoma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Meningioma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9995575221238938,
+      "f1": 0.0
+    },
+    "Meningioma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Meningioma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9995575221238938,
+      "f1": 0.0
+    },
+    "Neurocytoma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Neurocytoma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Neurocytoma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Normal T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Normal T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9991150442477876,
+      "f1": 0.0
+    },
+    "Normal T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Oligodendroglioma T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Oligodendroglioma T1C+": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": 0.0
+    },
+    "Oligodendroglioma T2": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9995575221238938,
+      "f1": 0.0
+    },
+    "Other T1": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.9986725663716814,
+      "f1": 0.0
+    },
+    "Other T1C+": {
+      "precision": 0.9984662576687117,
+      "recall": 0.9878603945371776,
+      "specificity": 0.9993753903810119,
+      "f1": 0.9931350114416476
+    },
+    "Other T2": {
+      "precision": 1.0,
+      "recall": 0.9835616438356164,
+      "specificity": 1.0,
+      "f1": 0.9917127071823204
+    },
+    "Schwannoma T1": {
+      "precision": 0.9918032786885246,
+      "recall": 1.0,
+      "specificity": 0.9984185556141276,
+      "f1": 0.9958847736625515
+    },
+    "Schwannoma T1C+": {
+      "precision": 0.9929203539823008,
+      "recall": 0.9946808510638298,
+      "specificity": 0.9976415094339622,
+      "f1": 0.9937998228520815
+    },
+    "Schwannoma T2": {
+      "precision": 0.9935064935064936,
+      "recall": 0.9902912621359223,
+      "specificity": 0.9989748846745259,
+      "f1": 0.9918962722852512
+    }
+  }
+}
